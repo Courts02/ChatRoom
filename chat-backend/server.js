@@ -1,4 +1,3 @@
-// server.js
 require("dotenv").config();
 
 const express = require("express");
@@ -18,92 +17,117 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-mongoose.connect("mongodb+srv://Courts:OuS9AvLJ9RXEXavP@chatroom.nseggfz.mongodb.net/?retryWrites=true&w=majority&appName=ChatRoom", {
-	useNewUrlParser: true,
-	useUnifiedTopology: true,
-});
+mongoose
+  .connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 
-// ✅ FIX: Define authenticateToken BEFORE it’s used
-
-// Middleware to verify JWT token
+// --- JWT Authentication middleware ---
 const authenticateToken = (req, res, next) => {
-	const token = req.header("Authorization");
-	if (!token) return res.status(401).json({ error: "Access denied" });
+  const authHeader = req.headers["authorization"]; // lowercase headers key!
+  const token = authHeader && authHeader.split(" ")[1]; // Bearer token
 
-	jwt.verify(token, "your-secret-key", (err, user) => {
-		if (err) return res.status(403).json({ error: "Invalid token" });
-		req.user = user;
-		next();
-	});
+  if (!token) return res.status(401).json({ error: "Access denied, no token" });
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ error: "Invalid or expired token" });
+    req.user = user; // { userId: ... }
+    next();
+  });
 };
 
-// Routes
-app.get("/messages", async (req, res) => {
-	try {
-		const messages = await ChatMessage.find();
-		res.json(messages);
-	} catch (error) {
-		console.error(error);
-		res.status(500).json({ error: "Internal Server Error" });
-	}
+// --- Routes ---
+
+// Get all messages (protected)
+app.get("/messages", authenticateToken, async (req, res) => {
+  try {
+    const messages = await ChatMessage.find().sort({ timestamp: 1 });
+    res.json(messages);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
+// Post a new message (protected)
 app.post("/messages", authenticateToken, async (req, res) => {
-	try {
-		const { message } = req.body;
-		const user = await User.findById(req.user.userId);
+  try {
+    const { message } = req.body;
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
+    }
 
-		if (!message) {
-			return res.status(400).json({ error: "Message is required" });
-		}
+    // Find user by ID stored in token payload
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(401).json({ error: "User not found" });
+    }
 
-		const chatMessage = new ChatMessage({
-			user: user.username,
-			message,
-		});
+    const chatMessage = new ChatMessage({
+      user: user.username,
+      message,
+    });
 
-		await chatMessage.save();
-
-		res.status(201).json(chatMessage);
-	} catch (error) {
-		console.error(error);
-		res.status(500).json({ error: "Internal Server Error" });
-	}
+    await chatMessage.save();
+    res.status(201).json(chatMessage);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
+// Signup new user
 app.post("/api/signup", async (req, res) => {
-	try {
-		const { username, password } = req.body;
-		const hashedPassword = await bcrypt.hash(password, 10);
-		const user = new User({ username, password: hashedPassword });
-		await user.save();
-		res.status(201).json({ message: "User created successfully" });
-	} catch (error) {
-		res.status(500).json({ error: "Error signing up" });
-	}
+  try {
+    const { username, password } = req.body;
+
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ error: "Username already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ username, password: hashedPassword });
+    await user.save();
+
+    res.status(201).json({ message: "User created successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error signing up" });
+  }
 });
 
+// Login user & return JWT
 app.post("/api/login", async (req, res) => {
-	try {
-		const { username, password } = req.body;
-		const user = await User.findOne({ username });
-		if (!user) {
-			return res.status(401).json({ error: "Invalid credentials" });
-		}
-		const isPasswordValid = await bcrypt.compare(password, user.password);
-		if (!isPasswordValid) {
-			return res.status(401).json({ error: "Invalid credentials" });
-		}
-		const token = jwt.sign({ userId: user._id }, "your-secret-key", {
-			expiresIn: "1h",
-		});
-		res.json({ token });
-	} catch (error) {
-		res.status(500).json({ error: "Error logging in" });
-	}
+  try {
+    const { username, password } = req.body;
+
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // Create token payload with userId for identification
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    res.json({ token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error logging in" });
+  }
 });
 
 // Start the server
 app.listen(PORT, () => {
-	console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
