@@ -1,10 +1,7 @@
-// ChatRoom.js
-
 import React, { useState, useEffect } from 'react';
 
-const ChatRoom = () => {
+const ChatRoom = ({ token }) => {
 	const [messages, setMessages] = useState([]);
-	const [user, setUser] = useState('');
 	const [message, setMessage] = useState('');
 
 	const fetchMessages = async () => {
@@ -23,8 +20,9 @@ const ChatRoom = () => {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
+					Authorization: token,
 				},
-				body: JSON.stringify({ user, message }),
+				body: JSON.stringify({ message }),
 			});
 
 			// Clear the message input after sending
@@ -58,12 +56,6 @@ const ChatRoom = () => {
 				))}
 			</ul>
 			<div>
-				<input
-					type="text"
-					placeholder="Your name"
-					value={user}
-					onChange={(e) => setUser(e.target.value)}
-				/>
 				<input
 					type="text"
 					placeholder="Type your message..."
