@@ -8,7 +8,7 @@ const ChatRoom = ({ token, setToken }) => {
   // Fetch messages with token in header (protected route)
   const fetchMessages = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:5000/messages', {
+      const response = await fetch('https://codeconnect-3r9w.onrender.com/messages', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -33,7 +33,7 @@ const ChatRoom = ({ token, setToken }) => {
     if (!message.trim()) return;
 
     try {
-      const response = await fetch('http://localhost:5000/messages', {
+      const response = await fetch('https://codeconnect-3r9w.onrender.com/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
