@@ -10,7 +10,7 @@ const Signup = () => {
 
   const handleSignup = async () => {
     try {
-      const response = await fetch("https://codeconnect-3r9w.onrender.com/api/signup", {
+      const response = await fetch("https://connecthub-9k2z.onrender.com/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
