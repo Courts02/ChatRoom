@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Login.css";  // separate CSS file for Login
+import "./Login.css";
 
 const Login = ({ setToken }) => {
   const [username, setUsername] = useState("");
@@ -9,6 +9,11 @@ const Login = ({ setToken }) => {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
+    if (!username || !password) {
+      setError("Both username and password are required.");
+      return;
+    }
+
     try {
       const response = await fetch("http://localhost:5000/api/login", {
         method: "POST",
@@ -16,26 +21,28 @@ const Login = ({ setToken }) => {
         body: JSON.stringify({ username, password }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errMsg = await response.text();
-        setError(errMsg || "Login failed");
+        setError(data.error || "Login failed");
         return;
       }
 
-      const data = await response.json();
       setToken(data.token);
       localStorage.setItem("token", data.token);
       navigate("/chatroom");
     } catch (error) {
       setError("Network error during login");
-      console.error("Error logging in:", error);
+      console.error("Login error:", error);
     }
   };
 
   return (
     <div className="auth-container">
-      <h2>Login</h2>
+      <h2>Log In</h2>
+
       {error && <p className="error-message">{error}</p>}
+
       <input
         type="text"
         placeholder="Username"
@@ -43,6 +50,7 @@ const Login = ({ setToken }) => {
         onChange={(e) => setUsername(e.target.value)}
         autoComplete="username"
       />
+
       <input
         type="password"
         placeholder="Password"
@@ -50,6 +58,7 @@ const Login = ({ setToken }) => {
         onChange={(e) => setPassword(e.target.value)}
         autoComplete="current-password"
       />
+
       <button onClick={handleLogin}>Log In</button>
     </div>
   );
