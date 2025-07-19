@@ -18,9 +18,14 @@ const ChatRoom = ({ token, setToken }) => {
   // useCallback ensures the function keeps the same reference unless `token` changes.
   const fetchMessages = useCallback(async () => {
     try {
+<<<<<<< HEAD
       // Make GET request to /messages with Authorization header.
       const response = await fetch('http://localhost:5000/messages', {
         headers: { Authorization: `Bearer ${token}` }, // ✅ send JWT!
+=======
+      const response = await fetch('https://connecthub-9k2z.onrender.com/messages', {
+        headers: { Authorization: `Bearer ${token}` },
+>>>>>>> 0b7db938a1ae7c642cab96ada0a7c0acb8940891
       });
 
       // Parse JSON response.
@@ -49,8 +54,12 @@ const ChatRoom = ({ token, setToken }) => {
     if (!message.trim()) return;
 
     try {
+<<<<<<< HEAD
       // Make POST request to /messages with Authorization header.
       const response = await fetch('http://localhost:5000/messages', {
+=======
+      const response = await fetch('https://connecthub-9k2z.onrender.com/messages', {
+>>>>>>> 0b7db938a1ae7c642cab96ada0a7c0acb8940891
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
