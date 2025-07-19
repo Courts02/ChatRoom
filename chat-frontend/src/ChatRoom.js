@@ -20,10 +20,10 @@ const ChatRoom = ({ token, setToken }) => {
     try {
 <<<<<<< HEAD
       // Make GET request to /messages with Authorization header.
-      const response = await fetch('http://localhost:5000/messages', {
+      const response = await fetch('https://connecthub-nd7o.onrender.com/messages', {
         headers: { Authorization: `Bearer ${token}` }, // ✅ send JWT!
 =======
-      const response = await fetch('https://connecthub-9k2z.onrender.com/messages', {
+      const response = await fetch('https://connecthub-nd7o.onrender.com/messages', {
         headers: { Authorization: `Bearer ${token}` },
 >>>>>>> 0b7db938a1ae7c642cab96ada0a7c0acb8940891
       });
@@ -56,9 +56,9 @@ const ChatRoom = ({ token, setToken }) => {
     try {
 <<<<<<< HEAD
       // Make POST request to /messages with Authorization header.
-      const response = await fetch('http://localhost:5000/messages', {
+      const response = await fetch('https://connecthub-nd7o.onrender.com/messages', {
 =======
-      const response = await fetch('https://connecthub-9k2z.onrender.com/messages', {
+      const response = await fetch('https://connecthub-nd7o.onrender.com/messages', {
 >>>>>>> 0b7db938a1ae7c642cab96ada0a7c0acb8940891
         method: 'POST',
         headers: {
