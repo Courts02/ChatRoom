@@ -1,0 +1,25 @@
+Signup
+
+http://localhost:5000/api/signup
+
+{
+  "username": "your_username",
+  "password": "your_password"
+}
+
+Login
+
+http://localhost:5000/api/login
+
+{
+  "username": "your_username",
+  "password": "your_password"
+}
+
+ChatRoom
+
+http://localhost:5000/messages
+
+{
+  "message": "Hello from Insomnia!"
+}
